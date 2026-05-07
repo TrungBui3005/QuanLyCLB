@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Hệ thống Quản lý CLB</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --sidebar-bg: #1a1d20;
+            --primary-grad: linear-gradient(135deg, #0d6efd 0%, #003175 100%);
+            --success-grad: linear-gradient(135deg, #198754 0%, #0c462c 100%);
+            --leader-grad: linear-gradient(135deg, #6610f2 0%, #3b078a 100%);
+        }
+
+        body { background-color: #f0f2f5; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        .sidebar { min-height: 100vh; background: var(--sidebar-bg); color: white; box-shadow: 4px 0 10px rgba(0,0,0,0.1); }
+        .nav-link { color: rgba(255,255,255,.7); padding: 12px 20px; margin: 4px 0; transition: all 0.3s; border-radius: 8px; cursor: pointer; text-decoration: none; display: block; }
+        .nav-link:hover { color: #fff; background: rgba(255,255,255,.1); transform: translateX(5px); }
+        .nav-link.active { background: #0d6efd !important; color: white !important; box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3); }
+        .user-info { background: rgba(255,255,255,0.05); border-radius: 15px; }
+        .card-stats { border: none; border-radius: 16px; overflow: hidden; transition: all 0.3s ease; }
+        .card-stats:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important; }
+        .bg-grad-primary { background: var(--primary-grad); }
+        .bg-grad-success { background: var(--success-grad); }
+        .bg-grad-leader { background: var(--leader-grad); }
+        .main-content { padding: 30px; }
+        .section-title { font-weight: 700; color: #334155; margin-bottom: 25px; }
+        .table-card { border-radius: 16px; border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+        .quick-btn { transition: all 0.2s; border: 1px solid #eee; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse p-3">
+                <div class="user-info mb-4 p-3 text-center">
+                    <div class="position-relative d-inline-block mb-3">
+                        <i class="fas fa-user-circle fa-4x text-info"></i>
+                        <span class="position-absolute bottom-0 start-100 translate-middle p-1 bg-success border border-light rounded-circle"></span>
+                    </div>
+                    <h6 id="welcomeName" class="text-white text-truncate px-2 mb-1">Đang tải...</h6>
+                    <span id="userRole" class="badge bg-info text-dark text-uppercase small">Thành viên</span>
+                </div>
+
+                <ul class="nav flex-column mt-4">
+                    <li class="nav-item"><a href="index.html" class="nav-link active"><i class="fas fa-th-large me-2"></i> Tổng quan</a></li>
+                    
+                    <!-- Admin Only -->
+                    <li class="nav-item admin-only"><a href="clubs.html" class="nav-link"><i class="fas fa-hubspot me-2"></i> Quản lý CLB</a></li>
+                    <li class="nav-item admin-only"><a href="users.html" class="nav-link"><i class="fas fa-users-cog me-2"></i> Quản lý Người dùng</a></li>
+                    
+                    <!-- Admin & Chủ nhiệm -->
+                    <li class="nav-item chunhiem-only"><a href="member.html" class="nav-link"><i class="fas fa-users me-2"></i> Quản lý Thành viên</a></li>
+                    <li class="nav-item chunhiem-only"><a href="events.html" class="nav-link"><i class="fas fa-calendar-plus me-2"></i> Tạo Sự kiện</a></li>
+                    <li class="nav-item chunhiem-only"><a href="manage_registrations.html" class="nav-link"><i class="fas fa-check-double me-2"></i> Duyệt đơn đăng ký</a></li>
+                     <li class="nav-item chunhiem-only"><a href="manage_club_registrations.html" class="nav-link"><i class="fas fa-check-double me-2"></i> Duyệt đơn CLB mới</a></li>
+                    
+                    <!-- Member Only (Xem và Tìm kiếm) -->
+                    <li class="nav-item member-only"><a href="register_club.html" class="nav-link"><i class="fas fa-search me-2"></i> Khám phá CLB</a></li>
+                    <li class="nav-item member-only"><a href="register_event.html" class="nav-link"><i class="fas fa-calendar-alt me-2"></i> Tìm kiếm Sự kiện</a></li>
+                    
+                    <li class="nav-item"><a href="profile.html" class="nav-link"><i class="fas fa-user-cog me-2"></i> Tài khoản</a></li>
+                </ul>
+
+                <div class="mt-auto pt-5">
+                    <hr class="text-secondary opacity-25">
+                    <button class="btn btn-danger w-100 rounded-3 shadow-sm" onclick="logout()">
+                        <i class="fas fa-power-off me-2"></i> Đăng xuất
+                    </button>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
+                <div class="d-flex justify-content-between align-items-center mb-5">
+                    <div>
+                        <h2 class="section-title mb-0">Xin chào, <span class="text-primary" id="userNameHello">...</span> 👋</h2>
+                        <p class="text-muted mb-0" id="currentDate"></p>
+                    </div>
+                </div>
+
+                <!-- Thao tác nhanh (Chỉ Admin/Chủ nhiệm) -->
+                <div class="mb-5 chunhiem-only">
+                    <h6 class="fw-bold text-muted small text-uppercase mb-3">Thao tác quản lý nhanh</h6>
+                    <div class="d-flex gap-3 flex-wrap">
+                        <button onclick="location.href='manage_registrations.html'" class="btn btn-white quick-btn bg-white rounded-3 px-4 py-2 fw-bold shadow-sm border-0">
+                            <i class="fas fa-user-plus text-primary me-2"></i> Duyệt đơn mới
+                        </button>
+                        <button onclick="location.href='events.html'" class="btn btn-white quick-btn bg-white rounded-3 px-4 py-2 fw-bold shadow-sm border-0">
+                            <i class="fas fa-calendar-check text-success me-2"></i> Thêm sự kiện
+                        </button>
+                         <button onclick="location.href='manage_club_registrations.html'" class="btn btn-white quick-btn bg-white rounded-3 px-4 py-2 fw-bold shadow-sm border-0">
+                            <i class="fas fa-user-plus text-primary me-2"></i> Duyệt đơn CLB mới
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-5">
+                    <!-- Card Nhân sự (Admin/Leader) -->
+                    <div class="col-md-6 admin-leader">
+                        <div class="card card-stats shadow-sm h-100 bg-grad-leader text-white border-0">
+                            <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="opacity-75 small text-uppercase fw-bold">Tham gia tăng gắn kết với nhau</h6>
+                                    <h2 class="display-6 fw-bold mb-0">Câu Lạc Bộ</h2>
+                                    <button onclick="location.href='register_club.html'" class="btn btn-light btn-sm mt-3 px-3 rounded-pill fw-bold text-dark border-0">Xem ngay</button>
+                                </div>
+                                <i class="fas fa-user-shield fa-4x opacity-25"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Card Sự kiện (Tất cả) -->
+                    <div class="col-md-6">
+                        <div class="card card-stats shadow-sm h-100 bg-grad-success text-white border-0">
+                            <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="opacity-75 small text-uppercase fw-bold">Hoạt động CLB</h6>
+                                    <h2 class="display-6 fw-bold mb-0">Sự kiện</h2>
+                                    <button onclick="location.href='register_event.html'" class="btn btn-light btn-sm mt-3 px-3 rounded-pill fw-bold text-success border-0">Tìm kiếm ngay</button>
+                                </div>
+                                <i class="fas fa-bolt fa-4x opacity-25"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- === PHẦN BẢN TIN ĐÃ ĐƯỢC CẬP NHẬT === -->
+<div class="col-lg-4 mb-4">
+    <div class="card table-card h-100 bg-white cursor-pointer" onclick="goToNewsPage()" style="transition: all 0.3s;">
+        <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0">
+                <i class="fas fa-bell me-2 text-warning"></i>Bản tin
+            </h5>
+            <button onclick="window.location.href='tintuc.html'" class="btn btn-link text-primary fw-bold p-0">
+    Xem tất cả →
+</button>
+        </div>
+        <div class="card-body px-4 py-3">
+            <div id="newsList">
+                <!-- Sẽ tự động load tin tức mới nhất ở đây -->
+            </div>
+        </div>
+    </div>
+</div>
+
+                    <div class="col-lg-8 mb-4">
+                        <!-- Lịch sử dành cho Member -->
+                        <div class="card table-card member-only bg-white">
+                            <div class="card-header bg-white py-4 px-4 border-0 d-flex justify-content-between align-items-center">
+                                <h5 class="fw-bold mb-0"><i class="fas fa-history me-2 text-success"></i>Hoạt động của tôi</h5>
+                                <span class="badge bg-dark rounded-pill" id="eventCount">0</span>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr><th class="ps-4">Sự kiện/CLB</th><th>Ngày</th><th>Trạng thái</th></tr>
+                                    </thead>
+                                    <tbody id="memberEvents">
+                                        <tr><td colspan="3" class="text-center py-4 text-muted">Đang tải...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Danh sách cho Admin -->
+                        <div class="card table-card admin-only bg-white">
+                            <div class="card-header bg-white py-4 px-4 border-0">
+                                <h5 class="fw-bold mb-0"><i class="fas fa-hubspot me-2 text-primary"></i>Danh sách Câu lạc bộ</h5>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr><th class="ps-4">ID</th><th>Tên CLB</th><th>Chủ nhiệm</th></tr>
+                                    </thead>
+                                    <tbody id="adminClubList"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user) { window.location.href = 'login.html'; } else { initDashboard(); }
+
+        function initDashboard() {
+            
+            document.getElementById('welcomeName').innerText = user.full_name;
+            document.getElementById('userNameHello').innerText = user.full_name;
+            document.getElementById('currentDate').innerText = new Date().toLocaleDateString('vi-VN', { 
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+            });
+
+            const role = user.role.toLowerCase();
+            const roleBadge = document.getElementById('userRole');
+
+            // Phân quyền hiển thị UI
+document.querySelectorAll('.admin-only, .chunhiem-only, .member-only').forEach(el => el.style.display = 'none');
+
+           if (role === 'admin') {
+        // Admin: Thêm CLB, Phân quyền, Tạo sự kiện chung
+        document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
+    } else if (role === 'chunhiem') {
+        // Chủ nhiệm: Tạo sự kiện CLB mình, Duyệt đơn CLB mình
+        document.querySelectorAll('.chunhiem-only').forEach(el => el.style.display = 'block');
+    } else {
+        // Thành viên: Khám phá CLB, Tìm sự kiện
+        document.querySelectorAll('.member-only').forEach(el => el.style.display = 'block');
+    }
+
+            // Cập nhật nhãn vai trò
+            if (role === 'admin') {
+                roleBadge.innerText = "Admin";
+                roleBadge.className = "badge bg-danger text-white text-uppercase small";
+            } else if (role === 'chunhiem') {
+                roleBadge.innerText = "Chủ nhiệm";
+                roleBadge.className = "badge bg-leader-grad text-white text-uppercase small";
+            } else {
+                roleBadge.innerText = "Thành viên";
+                roleBadge.className = "badge bg-info text-dark text-uppercase small";
+            }
+
+            // Tải dữ liệu
+            loadMyActivities();
+            loadAllClubs();
+        }
+
+        async function loadMyActivities() {
+            try {
+                const res = await fetch(`index.php/registration/my-activities?user_id=${user.id}`);
+                const result = await res.json();
+                if (result.status === "success") {
+                    const container = document.getElementById('memberEvents');
+                    document.getElementById('eventCount').innerText = result.data.length;
+                    if(result.data.length === 0) {
+                        container.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-muted">Bạn chưa tham gia hoạt động nào.</td></tr>';
+                        return;
+                    }
+                    container.innerHTML = result.data.map(ev => `
+                        <tr>
+                            <td class="ps-4 fw-bold">${ev.event_name || 'Đăng ký CLB'}</td>
+                            <td>${new Date(ev.created_at || Date.now()).toLocaleDateString('vi-VN')}</td>
+                            <td><span class="status-badge ${getStatusClass(ev.status)}">${getStatusText(ev.status)}</span></td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (e) { console.error("Lỗi tải hoạt động:", e); }
+        }
+
+        async function loadAllClubs() {
+            try {
+                const res = await fetch('index.php/club/list');
+                const data = await res.json();
+                const container = document.getElementById('adminClubList');
+                container.innerHTML = data.map(club => `
+                    <tr>
+                        <td class="ps-4 text-muted small">#${club.id}</td>
+                        <td class="fw-bold">${club.club_name}</td>
+                        <td>${club.leader_name || 'Chưa gán'}</td>
+                    </tr>
+                `).join('');
+            } catch (e) { console.error("Lỗi tải CLB:", e); }
+        }
+
+        function getStatusClass(s) { 
+            return s == 'Đã duyệt' || s == 1 ? "bg-success-subtle text-success" : (s == 'Từ chối' || s == 2 ? "bg-danger-subtle text-danger" : "bg-warning-subtle text-warning"); 
+        }
+        function getStatusText(s) { 
+            return (s == 0 || s == 'Chờ duyệt') ? "Đang chờ" : (s == 1 || s == 'Đã duyệt' ? "Thành công" : "Bị từ chối"); 
+        }
+        function logout() { localStorage.removeItem('user'); window.location.href = 'login.html'; }
+        // Thêm hàm này vào cuối file script
+async function loadLatestNews() {
+    try {
+        const res = await fetch('index.php/tintuc/list');
+        const data = await res.json();
+
+        const container = document.getElementById('newsList');
+        
+        // Xử lý cả 2 trường hợp: mảng hoặc {status, data}
+        let news = Array.isArray(data) ? data : (data.data || []);
+        
+        if (news.length === 0) {
+            container.innerHTML = `
+                <div class="py-3 text-center text-muted small">
+                    Chưa có tin tức nào.<br>
+                    <a href="tintuc.html" class="text-primary">Đăng tin đầu tiên →</a>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = news.slice(0, 2).map(item => `
+            <div class="py-3 border-bottom border-light" onclick="goToNewsDetail(${item.id})" style="cursor:pointer;">
+                <span class="badge bg-primary-subtle text-primary mb-2">${item.club_name || 'CLB'}</span>
+                <h6 class="mb-1 fw-bold text-truncate">${item.tieu_de}</h6>
+                <small class="text-muted">${new Date(item.ngay_dang).toLocaleDateString('vi-VN')}</small>
+            </div>
+        `).join('');
+        
+    } catch (e) {
+        console.error("Lỗi tải tin tức:", e);
+        document.getElementById('newsList').innerHTML = `
+            <div class="py-3 text-center text-muted small">
+                Không thể tải tin tức lúc này.
+            </div>`;
+    }
+}
+
+function goToNewsPage() {
+    window.location.href = 'tintuc.html';
+}
+
+// Nếu muốn click từng tin (tạm thời chuyển về trang tạo, sau này có thể làm trang chi tiết)
+function goToNewsDetail(id) {
+    alert("📰 Đang xem tin tức #" + id + "\n\nChức năng xem chi tiết sẽ được làm sau.");
+    // window.location.href = `tintuc-detail.html?id=${id}`;
+}
+
+// Chuyển đến trang tin tức
+function goToNewsPage() {
+    window.location.href = 'tintuc.html';
+}
+
+// Gọi hàm load tin tức khi khởi tạo dashboard
+// Trong hàm initDashboard(), thêm dòng này:
+loadLatestNews();
+    </script>
+</body>
+</html>

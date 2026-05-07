@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý Câu lạc bộ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary-color: #4361ee; --bg-color: #f8f9fa; }
+        body { background-color: var(--bg-color); font-family: 'Segoe UI', sans-serif; }
+        .main-card { border: none; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .table thead { background-color: #f1f3f9; }
+        .btn-action { width: 35px; height: 35px; padding: 0; line-height: 35px; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold text-dark"><i class="fas fa-users-cog me-2 text-primary"></i>Quản lý Câu lạc bộ</h2>
+            <button class="btn btn-primary px-4 fw-bold shadow-sm" onclick="showAddModal()">
+                <i class="fas fa-plus me-2"></i>Thêm CLB Mới
+            </button>
+        </div>
+
+        <div class="card main-card">
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0" id="clubTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">ID</th>
+                            <th>Tên Câu lạc bộ</th>
+                            <th>Mô tả</th>
+                            <th class="text-center">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="4" class="text-center py-5"><div class="spinner-border text-primary"></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Thêm/Sửa CLB -->
+    <div class="modal fade" id="clubModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold" id="modalTitle">Thêm Câu lạc bộ</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="clubForm">
+                        <input type="hidden" id="club_id">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tên CLB</label>
+                            <input type="text" class="form-control" id="club_name" required placeholder="Nhập tên câu lạc bộ...">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Mô tả</label>
+                            <textarea class="form-control" id="description" rows="3" placeholder="Mô tả ngắn gọn..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary fw-bold px-4" onclick="saveClub()">Lưu dữ liệu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let clubModal = new bootstrap.Modal(document.getElementById('clubModal'));
+
+        // 1. Tải danh sách CLB
+        async function loadClubs() {
+            try {
+                const res = await fetch('index.php/club/list');
+                const clubs = await res.json();
+                const tbody = document.querySelector('#clubTable tbody');
+                
+                if (!clubs || clubs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4">Chưa có CLB nào.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = clubs.map(club => `
+                    <tr>
+                        <td class="ps-4 fw-bold">${club.id}</td>
+                        <td><span class="badge bg-info text-dark">${club.club_name}</span></td>
+                        <td class="text-muted">${club.description || 'Không có mô tả'}</td>
+                        <td class="text-center">
+                            <button class="btn btn-warning btn-action me-1 text-white" onclick="editClub(${JSON.stringify(club).replace(/"/g, '&quot;')})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger btn-action" onclick="deleteClub(${club.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // 2. Hiện Modal Thêm
+        function showAddModal() {
+            document.getElementById('modalTitle').innerText = "Thêm Câu lạc bộ";
+            document.getElementById('club_id').value = "";
+            document.getElementById('clubForm').reset();
+            clubModal.show();
+        }
+
+        // 3. Hiện Modal Sửa
+        function editClub(club) {
+            document.getElementById('modalTitle').innerText = "Sửa Câu lạc bộ";
+            document.getElementById('club_id').value = club.id;
+            document.getElementById('club_name').value = club.club_name;
+            document.getElementById('description').value = club.description;
+            clubModal.show();
+        }
+
+        // 4. Lưu (Thêm hoặc Cập nhật)
+        async function saveClub() {
+            const id = document.getElementById('club_id').value;
+            const data = {
+                club_name: document.getElementById('club_name').value,
+                description: document.getElementById('description').value
+            };
+
+            const url = id ? `index.php/club/update?id=${id}` : 'index.php/club/add';
+            const method = id ? 'PUT' : 'POST'; // Hoặc POST tùy vào API của bạn
+
+            try {
+                const res = await fetch(url, {
+                    method: 'POST', // Đa số PHP thuần dùng POST để nhận dữ liệu dễ hơn
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (result.status === "success") {
+                    clubModal.hide();
+                    loadClubs();
+                } else { alert("Lỗi: " + result.message); }
+            } catch (err) { alert("Không thể kết nối server"); }
+        }
+
+        // 5. Xóa CLB
+        async function deleteClub(id) {
+            if (!confirm("Bạn có chắc chắn muốn xóa CLB này không?")) return;
+            try {
+                const res = await fetch(`index.php/club/delete?id=${id}`, { method: 'GET' });
+                const result = await res.json();
+                if (result.status === "success") loadClubs();
+                else alert("Lỗi khi xóa: " + result.message);
+            } catch (err) { alert("Lỗi kết nối"); }
+        }
+
+        loadClubs();
+    </script>
+</body>
+</html>

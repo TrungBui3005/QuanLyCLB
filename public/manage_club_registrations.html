@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Duyệt Đơn Đăng Ký CLB | Chủ Nhiệm</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Inter', sans-serif; }
+        .table-card { border: none; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        .badge-pending { background-color: #fef9c3; color: #a16207; }
+        .btn-approve { background-color: #10b981; color: white; border-radius: 8px; }
+        .btn-reject { background-color: #ef4444; color: white; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold text-dark">Duyệt đơn gia nhập Câu lạc bộ</h3>
+            <a href="index.html" class="btn btn-outline-secondary btn-sm"><i class="fas fa-home me-2"></i>Dashboard</a>
+        </div>
+
+        <div class="card table-card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Sinh viên</th>
+                                <th>Mã SV</th>
+                                <th>Câu lạc bộ</th>
+                                <th>Lý do</th>
+                                <th>Ngày gửi</th>
+                                <th class="text-end pe-4">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="registrationList">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user || user.role !== 'chunhiem') {
+            alert("Chỉ chủ nhiệm mới có quyền truy cập!");
+            window.location.href = 'index.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', loadRegistrations);
+
+        async function loadRegistrations() {
+            try {
+              const res = await fetch(`index.php/registrationclub/list-all?user_id=${user.id}&role=${user.role}`);
+                const result = await res.json();
+                const list = document.getElementById('registrationList');
+
+                if (result.status === "success") {
+                    // Lọc chỉ những đơn "Chờ duyệt"
+                    const pendingRequests = result.data.filter(r => r.status === 'Chờ duyệt');
+                    
+                    if (pendingRequests.length === 0) {
+                        list.innerHTML = '<tr><td colspan="6" class="text-center py-5 text-muted">Không có đơn nào đang chờ duyệt.</td></tr>';
+                        return;
+                    }
+
+                    list.innerHTML = pendingRequests.map(r => `
+                        <tr>
+                            <td class="ps-4 fw-bold">${r.full_name}</td>
+                            <td><code class="text-primary">${r.student_code}</code></td>
+                            <td><span class="badge bg-info-subtle text-info">${r.club_name}</span></td>
+                            <td class="small text-muted" style="max-width: 200px;">${r.reason}</td>
+                            <td>${new Date(r.registered_at).toLocaleDateString('vi-VN')}</td>
+                            <td class="text-end pe-4">
+                                <button onclick="updateStatus(${r.id}, 'Đã duyệt')" class="btn btn-approve btn-sm me-2">
+                                    <i class="fas fa-check"></i> Duyệt
+                                </button>
+                                <button onclick="updateStatus(${r.id}, 'Từ chối')" class="btn btn-reject btn-sm">
+                                    <i class="fas fa-times"></i> Từ chối
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (e) { console.error("Lỗi tải đơn:", e); }
+        }
+
+        async function updateStatus(id, newStatus) {
+            if (!confirm(`Bạn có chắc muốn ${newStatus} đơn này?`)) return;
+
+            try {
+                const res = await fetch('index.php/registrationclub/update-status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id, status: newStatus })
+                });
+                const result = await res.json();
+                if (result.status === "success") {
+                    alert(result.message);
+                    loadRegistrations(); // Reload lại danh sách
+                }
+            } catch (e) { alert("Lỗi hệ thống!"); }
+        }
+    </script>
+</body>
+</html>

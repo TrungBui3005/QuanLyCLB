@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khám phá Câu lạc bộ | UTT</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #f0f2f5; font-family: 'Inter', sans-serif; }
+        .navbar-custom { background: #1a1d20; color: white; padding: 15px; }
+        .club-card { 
+            border: none; 
+            border-radius: 15px; 
+            transition: all 0.3s ease; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            height: 100%;
+        }
+        .club-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .btn-join { border-radius: 10px; font-weight: 600; padding: 10px 20px; }
+        .search-box { border-radius: 25px; padding-left: 20px; border: 1px solid #ddd; }
+        .badge-category { position: absolute; top: 15px; right: 15px; background: rgba(13, 110, 253, 0.1); color: #0d6efd; border: none; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-custom shadow-sm mb-4">
+        <div class="container">
+            <a class="navbar-brand text-white fw-bold" href="index.html">
+                <i class="fas fa-arrow-left me-2"></i> Quay lại Dashboard
+            </a>
+            <span class="navbar-text text-white-50">Khám phá & Gia nhập CLB</span>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row mb-5 justify-content-center">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0 search-box"><i class="fas fa-search text-muted"></i></span>
+                    <input type="text" id="searchInput" class="form-control border-start-0 search-box shadow-none" placeholder="Tìm kiếm tên câu lạc bộ..." onkeyup="filterClubs()">
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4" id="clubContainer">
+            <div class="col-12 text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2 text-muted">Đang tải danh sách câu lạc bộ...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="joinModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header border-0 pt-4 px-4">
+                    <h5 class="modal-title fw-bold">Đăng ký gia nhập <span id="modalClubName" class="text-primary"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" id="targetClubId">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">LÝ DO GIA NHẬP</label>
+                        <textarea id="joinReason" class="form-control" rows="4" placeholder="Hãy chia sẻ một chút về bản thân và tại sao bạn muốn tham gia CLB này..." style="border-radius: 12px;"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pb-4 px-4">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold" onclick="submitRegistration()">Gửi đơn đăng ký</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const user = JSON.parse(localStorage.getItem('user'));
+        let allClubs = [];
+
+        if (!user) { window.location.href = 'login.html'; }
+
+        document.addEventListener('DOMContentLoaded', loadClubs);
+
+      async function loadClubs() {
+    try {
+        const res = await fetch(`index.php/registrationclub/listForStudent?user_id=${user.id}`);
+        const result = await res.json();
+
+        if (result.status === "success") {
+            allClubs = result.clubs;
+            renderClubs(allClubs);
+        } else {
+            throw new Error(result.message);
+        }
+    } catch (e) {
+        console.error("Lỗi:", e);
+        document.getElementById('clubContainer').innerHTML = 
+            '<p class="text-center text-danger">Không thể tải danh sách CLB.</p>';
+    }
+}
+        function renderClubs(clubs) {
+    const container = document.getElementById('clubContainer');
+    if (clubs.length === 0) {
+        container.innerHTML = '<div class="col-12 text-center text-muted">Không tìm thấy câu lạc bộ nào.</div>';
+        return;
+    }
+
+    container.innerHTML = clubs.map(club => {
+        let buttonHTML = '';
+
+        if (club.registration_status === 'Đã duyệt') {
+            buttonHTML = `
+                <button class="btn btn-success w-100 btn-join" disabled>
+                    <i class="fas fa-check-circle me-2"></i> Đã tham gia
+                </button>`;
+        } 
+        else if (club.registration_status === 'Chờ duyệt') {
+            buttonHTML = `
+                <button class="btn btn-warning w-100 btn-join" disabled>
+                    <i class="fas fa-hourglass-half me-2"></i> Đang chờ duyệt
+                </button>`;
+        } 
+        else {
+            // Chưa đăng ký hoặc bị từ chối
+            buttonHTML = `
+                <button class="btn btn-outline-primary w-100 btn-join" 
+                        onclick="openJoinModal(${club.id}, '${club.club_name.replace(/'/g, "\\'")}')">
+                    <i class="fas fa-paper-plane me-2"></i> Đăng ký tham gia
+                </button>`;
+        }
+
+        return `
+            <div class="col-md-4 club-item">
+                <div class="card club-card">
+                    <div class="card-body p-4">
+                        <span class="badge badge-category p-2 small">#${club.id}</span>
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-primary bg-opacity-10 p-3 rounded-3 me-3">
+                                <i class="fas fa-users fa-2x text-primary"></i>
+                            </div>
+                            <h5 class="card-title fw-bold mb-0">${club.club_name}</h5>
+                        </div>
+                        <p class="text-muted small mb-4">
+                            <i class="fas fa-user-tie me-1"></i> Chủ nhiệm: ${club.leader_name}
+                        </p>
+                        ${buttonHTML}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+        function filterClubs() {
+            const term = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allClubs.filter(c => c.club_name.toLowerCase().includes(term));
+            renderClubs(filtered);
+        }
+
+        function openJoinModal(id, name) {
+            document.getElementById('targetClubId').value = id;
+            document.getElementById('modalClubName').innerText = name;
+            const modal = new bootstrap.Modal(document.getElementById('joinModal'));
+            modal.show();
+        }
+
+        async function submitRegistration() {
+            const clubId = document.getElementById('targetClubId').value;
+            const reason = document.getElementById('joinReason').value;
+
+            if (!reason.trim()) {
+                alert("Vui lòng nhập lý do gia nhập!");
+                return;
+            }
+
+            try {
+                const response = await fetch('index.php/registrationclub/join', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: user.id,
+                        club_id: clubId,
+                        reason: reason
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.status === "success") {
+                    alert("Gửi đơn đăng ký thành công! Vui lòng chờ duyệt.");
+                    location.reload();
+                } else {
+                    alert(result.message || "Lỗi khi đăng ký.");
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Lỗi kết nối server!");
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Đăng / Sửa Tin Tức</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background: #f4f7f6; }
+        .card-custom { border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .header-grad { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            border-radius: 20px 20px 0 0; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card card-custom">
+                    <div class="header-grad text-white text-center py-4">
+                        <h3 class="mb-0 fw-bold" id="formTitle">
+                            <i class="fas fa-newspaper me-2"></i>ĐĂNG TIN TỨC MỚI
+                        </h3>
+                    </div>
+                    <div class="card-body p-5">
+                        <div class="row g-4">
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Câu lạc bộ (*)</label>
+                                <select id="club_id" class="form-select"></select>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Tiêu đề tin tức (*)</label>
+                                <input type="text" id="tieu_de" class="form-control">
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Hình ảnh (URL)</label>
+                                <input type="text" id="hinh_anh" class="form-control">
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Nội dung (*)</label>
+                                <textarea id="noi_dung" rows="8" class="form-control"></textarea>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Địa điểm</label>
+                                <input type="text" id="dia_diem" class="form-control">
+                            </div>
+
+                            <div class="col-12 mt-4">
+                                <button onclick="saveTintuc()" class="btn btn-primary btn-lg w-100" id="btnSubmit">
+                                    <i class="fas fa-paper-plane"></i> ĐĂNG TIN TỨC
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user) window.location.href = 'login.html';
+
+        let editId = null;
+
+        // Lấy ID từ URL nếu đang sửa
+        const urlParams = new URLSearchParams(window.location.search);
+        editId = urlParams.get('id');
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadClubs();
+            
+            if (editId) {
+                document.getElementById('formTitle').innerHTML = `<i class="fas fa-edit me-2"></i>CHỈNH SỬA TIN TỨC`;
+                document.getElementById('btnSubmit').innerHTML = `<i class="fas fa-save"></i> CẬP NHẬT TIN TỨC`;
+                await loadNewsData(editId);
+            }
+        });
+
+        async function loadClubs() {
+            const select = document.getElementById('club_id');
+            try {
+                const res = await fetch('index.php/club/list');
+                const clubs = await res.json();
+                select.innerHTML = '<option value="">-- Chọn câu lạc bộ --</option>' +
+                    clubs.map(c => `<option value="${c.id}">${c.club_name}</option>`).join('');
+            } catch(e) {
+                select.innerHTML = '<option value="">Lỗi tải danh sách CLB</option>';
+            }
+        }
+
+        async function loadNewsData(id) {
+            try {
+                const res = await fetch(`index.php/tintuc/get?id=${id}`);
+                const news = await res.json();
+
+                if (news.status === "error") {
+                    alert("Không tìm thấy tin tức!");
+                    window.location.href = 'tintuc.html';
+                    return;
+                }
+
+                document.getElementById('club_id').value = news.club_id;
+                document.getElementById('tieu_de').value = news.tieu_de;
+                document.getElementById('hinh_anh').value = news.hinh_anh || '';
+                document.getElementById('noi_dung').value = news.noi_dung;
+                document.getElementById('dia_diem').value = news.dia_diem || '';
+            } catch (err) {
+                console.error(err);
+                alert("Lỗi khi tải dữ liệu tin tức");
+            }
+        }
+
+        async function saveTintuc() {
+            const club_id = document.getElementById('club_id').value;
+            const tieu_de = document.getElementById('tieu_de').value.trim();
+            const hinh_anh = document.getElementById('hinh_anh').value.trim();
+            const noi_dung = document.getElementById('noi_dung').value.trim();
+            const dia_diem = document.getElementById('dia_diem').value.trim();
+
+            if (!club_id || !tieu_de || !noi_dung) {
+                alert("Vui lòng nhập đầy đủ thông tin bắt buộc (*)");
+                return;
+            }
+
+            const payload = {
+                club_id: parseInt(club_id),
+                tieu_de,
+                hinh_anh: hinh_anh || null,
+                noi_dung,
+                dia_diem: dia_diem || null,
+                created_by: user.id
+            };
+
+            try {
+                let url = 'index.php/tintuc/create';
+                let method = 'POST';
+
+                if (editId) {
+                    url = `index.php/tintuc/update?id=${editId}`;
+                }
+
+                const res = await fetch(url, {
+                    method: method,
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await res.json();
+
+                if (result.status === "success") {
+                    alert(editId ? "✅ Cập nhật tin tức thành công!" : "✅ Đăng tin tức thành công!");
+                    window.location.href = 'tintuc.html';
+                } else {
+                    alert("❌ " + (result.message || "Thao tác thất bại"));
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Lỗi kết nối với server");
+            }
+        }
+    </script>
+</body>
+</html>

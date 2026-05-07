@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Trang cá nhân | Thành viên</title>
+    <!-- CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #f4f7f6; font-family: 'Inter', sans-serif; }
+        .profile-card { border: none; border-radius: 15px; overflow: hidden; }
+        .profile-header { background: #212529; height: 100px; }
+        .avatar-wrapper { margin-top: -50px; }
+        .avatar-circle { 
+            width: 100px; height: 100px; 
+            background: #fff; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.5rem; color: #0d6efd; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="card profile-card shadow-sm">
+                    <div class="profile-header"></div>
+                    <div class="card-body text-center p-4">
+                        <div class="avatar-wrapper mb-3">
+                            <div class="avatar-circle" id="userInitial">?</div>
+                        </div>
+                        <h3 class="fw-bold mb-1" id="fullName">Họ và Tên</h3>
+                        <p class="text-muted mb-3" id="userName">@username</p>
+                        
+                        <div class="d-flex justify-content-center gap-2 mb-4">
+                            <span class="badge bg-primary px-3 py-2" id="userRole">MEMBER</span>
+                        </div>
+
+                        <button class="btn btn-sm btn-outline-primary w-100 mb-3" data-bs-toggle="modal" data-bs-target="#updateModal">
+                            <i class="fas fa-user-edit me-1"></i> Cập nhật hồ sơ
+                        </button>
+
+                        <hr>
+
+                        <div class="text-start mt-4">
+                            <div class="mb-3">
+                                <label class="small text-muted d-block">Mã số sinh viên (MSV)</label>
+                                <span class="fw-bold" id="userId">#000</span>
+                            </div>
+                            <div class="mb-3">
+                                <label class="small text-muted d-block">Email liên hệ</label>
+                                <span class="fw-bold text-dark" id="userDept">Chưa có email</span>
+                            </div>
+                            <div class="mb-3">
+                                <label class="small text-muted d-block">Trạng thái tài khoản</label>
+                                <span class="text-success"><i class="fas fa-check-circle me-1"></i> Đang hoạt động</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-5 d-grid gap-2">
+                            <a href="index.html" class="btn btn-outline-dark">Quay lại trang chủ</a>
+                            <button onclick="logout()" class="btn btn-danger">Đăng xuất</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Cập Nhật -->
+    <div class="modal fade" id="updateModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Chỉnh sửa thông tin cá nhân</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="updateForm">
+                    <div class="modal-body text-start">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Họ và tên</label>
+                            <input type="text" class="form-control" id="editFullName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Email / Liên hệ</label>
+                            <input type="text" class="form-control" id="editContact" placeholder="Nhập email mới">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Mật khẩu mới</label>
+                            <input type="password" class="form-control" id="editPassword" placeholder="Để trống nếu không đổi">
+                        </div>
+                        <div class="alert alert-info small">
+                            Lưu ý: Mã sinh viên và Ban hoạt động do Admin quản lý.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Đóng</button>
+                        <button type="submit" class="btn btn-primary px-4">Lưu thay đổi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 1. Tải thông tin người dùng từ LocalStorage
+        function loadProfile() {
+            const user = JSON.parse(localStorage.getItem('user'));
+
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Đổ dữ liệu vào UI
+            document.getElementById('fullName').innerText = user.full_name || "Chưa cập nhật";
+            document.getElementById('userName').innerText = "@" + user.username;
+            document.getElementById('userId').innerText = "#" + user.id;
+            document.getElementById('userRole').innerText = (user.role || "member").toUpperCase();
+            document.getElementById('userDept').innerText = user.email || "Chưa có email";
+            
+            // Avatar
+            const nameForAvatar = user.full_name || user.username || "?";
+            document.getElementById('userInitial').innerText = nameForAvatar.charAt(0).toUpperCase();
+
+            // Điền sẵn vào Modal
+            document.getElementById('editFullName').value = user.full_name || "";
+            document.getElementById('editContact').value = user.email || "";
+
+            if(user.role === 'admin') {
+                document.getElementById('userRole').className = 'badge bg-danger px-3 py-2';
+            }
+        }
+
+        // 2. Gửi yêu cầu cập nhật lên Server
+        document.getElementById('updateForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const user = JSON.parse(localStorage.getItem('user'));
+            
+            const formData = {
+                id: user.id,
+                full_name: document.getElementById('editFullName').value,
+                contact: document.getElementById('editContact').value,
+                password: document.getElementById('editPassword').value
+            };
+
+            try {
+                // SỬA URL ĐỂ KHỚP VỚI PATH_INFO TRONG index.php
+              const response = await fetch('index.php/profile/update', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(formData)
+});
+
+                if (!response.ok) {
+                    throw new Error("Không tìm thấy Endpoint trên máy chủ.");
+                }
+
+                const result = await response.json();
+                
+                if (result.status === "success") {
+                    // Cập nhật lại LocalStorage để hiển thị ngay
+                    user.full_name = formData.full_name;
+                    user.email = formData.contact;
+                    localStorage.setItem('user', JSON.stringify(user));
+                    
+                    alert("Cập nhật hồ sơ thành công!");
+                    location.reload();
+                } else {
+                    alert("Lỗi: " + result.message);
+                }
+            } catch (err) {
+                console.error("Lỗi kết nối:", err);
+                alert("Lỗi: " + err.message + ". Vui lòng kiểm tra lại Router index.php.");
+            }
+        });
+
+        function logout() {
+            if(confirm("Bạn có chắc chắn muốn đăng xuất?")) {
+                localStorage.removeItem('user');
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Khởi tạo trang
+        loadProfile();
+    </script>
+</body>
+</html>
