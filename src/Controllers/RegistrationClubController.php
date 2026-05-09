@@ -46,8 +46,6 @@ class RegistrationClubController {
             exit;
         }
 
-        // Truy vấn database để lấy Role và Club_id thực tế của người đang đăng nhập
-        // Bước này cực kỳ quan trọng để đảm bảo bảo mật
         $stmt = $this->db->prepare("SELECT role, club_id FROM users WHERE id = ?");
         $stmt->execute([$userId]);
         $currentUser = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -57,9 +55,6 @@ class RegistrationClubController {
             exit;
         }
 
-        // Xác định Managed Club ID dựa trên quyền
-        // Nếu là chủ nhiệm -> Lấy ID câu lạc bộ họ quản lý
-        // Nếu là admin -> Để null để lấy tất cả
         $managedClubId = ($currentUser['role'] === 'chunhiem') ? $currentUser['club_id'] : null;
 
         $data = $this->repository->getAllWithDetails($managedClubId);

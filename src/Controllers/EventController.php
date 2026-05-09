@@ -24,6 +24,35 @@ class EventController {
         exit;
     }
 
+    public function detail() {
+        $id = $_GET['id'] ?? null;
+        $result = $this->service->getEventDetail($id);
+        header('Content-Type: application/json');
+        echo json_encode($result);
+        exit;
+    }
+
+    public function update() {
+        $id = $_GET['id'] ?? null;
+        $data = json_decode(file_get_contents("php://input"));
+        if ($id && $data) {
+            $result = $this->service->updateEvent($id, $data);
+            header('Content-Type: application/json');
+            echo json_encode($result);
+        }
+        exit;
+    }
+
+    public function delete() {
+        $id = $_GET['id'] ?? null;
+        if ($id) {
+            $result = $this->service->deleteEvent($id);
+            header('Content-Type: application/json');
+            echo json_encode($result);
+        }
+        exit;
+    }
+
     public function list() {
         $events = $this->service->getAllEvents();
         header('Content-Type: application/json');

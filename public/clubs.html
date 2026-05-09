@@ -132,11 +132,10 @@
             };
 
             const url = id ? `index.php/club/update?id=${id}` : 'index.php/club/add';
-            const method = id ? 'PUT' : 'POST'; // Hoặc POST tùy vào API của bạn
-
+            const method = id ? 'PUT' : 'POST'; 
             try {
                 const res = await fetch(url, {
-                    method: 'POST', // Đa số PHP thuần dùng POST để nhận dữ liệu dễ hơn
+                    method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });

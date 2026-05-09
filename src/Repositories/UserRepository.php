@@ -45,7 +45,7 @@ class UserRepository {
         ':full_name' => $data->full_name,
         ':student_code' => $data->student_code,
         ':username' => $data->username,
-        ':password' => $data->password, // Lưu ý: Nên dùng password_hash() nếu làm thực tế
+        ':password' => $data->password,
         ':role' => $data->role
     ]);
 }

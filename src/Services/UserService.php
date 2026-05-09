@@ -31,8 +31,6 @@ public function updateUserRole($id, $role, $club_id = null) {
     if (empty($id) || empty($role)) {
         return false;
     }
-
-    // Bạn có thể thêm kiểm tra bảo mật tại đây (ví dụ: chỉ admin mới được gọi hàm này)
     return $this->repository->updateRole($id, $role, $club_id);
 }
 }

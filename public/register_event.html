@@ -2,6 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sự kiện CLB</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -17,7 +18,6 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        /* Header Styling */
         .page-header {
             background: white;
             padding: 2rem 0;
@@ -26,7 +26,6 @@
             border-bottom: 1px solid #edf2f7;
         }
 
-        /* Card Styling */
         .event-card { 
             transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
             border-radius: 20px; 
@@ -41,22 +40,10 @@
             box-shadow: 0 20px 40px rgba(0,0,0,0.12) !important; 
         }
 
-        /* Banner giả lập cho card sinh động hơn */
         .card-banner {
             height: 120px;
             background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
             position: relative;
-        }
-
-        .card-banner::after {
-            content: "\f073";
-            font-family: "Font Awesome 6 Free";
-            font-weight: 900;
-            position: absolute;
-            bottom: -20px;
-            right: 25px;
-            font-size: 3rem;
-            color: rgba(255,255,255,0.2);
         }
 
         .card-title { 
@@ -77,26 +64,10 @@
             color: var(--primary-color); 
         }
 
-        .btn-join { 
-            border-radius: 12px; 
-            font-weight: 700; 
-            padding: 12px;
+        .btn-action { 
+            border-radius: 10px; 
+            font-weight: 600;
             transition: all 0.3s;
-            border: none;
-            background: linear-gradient(to right, #4361ee, #3f37c9);
-        }
-
-        .btn-join:hover {
-            filter: brightness(1.1);
-            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
-        }
-
-        .admin-notice { 
-            background-color: #dcfce7; 
-            color: #166534; 
-            border: 1px solid #bbf7d0; 
-            border-radius: 12px; 
-            padding: 10px;
         }
 
         .badge-date {
@@ -119,143 +90,261 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h2 class="fw-extrabold m-0" style="color: #2d3748;">
-                        <i class="fas fa-layer-group me-2 text-primary"></i>Sự kiện CLB
+                        <i class="fas fa-calendar-alt me-2 text-primary"></i>Sự kiện CLB
                     </h2>
                     <p class="text-muted m-0 mt-1">Khám phá và tham gia các hoạt động mới nhất</p>
                 </div>
-                <a href="index.html" class="btn btn-outline-dark px-4 rounded-pill fw-bold">
-                    <i class="fas fa-arrow-left me-2"></i>Trang chủ
-                </a>
+                <div class="d-flex gap-2">
+                    <button id="btnAddEvent" onclick="openEventModal()" class="btn btn-primary px-4 rounded-pill fw-bold d-none">
+                        <i class="fas fa-plus me-2"></i>Thêm sự kiện
+                    </button>
+                    <a href="index.html" class="btn btn-outline-dark px-4 rounded-pill fw-bold">
+                        <i class="fas fa-arrow-left me-2"></i>Trang chủ
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 
     <div class="container pb-5">
         <div id="eventContainer" class="row g-4">
-            <!-- Hiệu ứng Loading khi chờ API -->
             <div class="col-12 text-center py-5">
-                <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
-                <p class="mt-3 text-muted fw-500">Đang đồng bộ dữ liệu sự kiện...</p>
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-3 text-muted">Đang tải dữ liệu...</p>
             </div>
         </div>
     </div>
 
+    <div class="modal fade" id="eventModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="modalTitle">Thêm sự kiện mới</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="eventForm">
+                        <input type="hidden" id="eventId">
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-bold">Tên sự kiện</label>
+                                <input type="text" class="form-control" id="title" required placeholder="Nhập tên sự kiện...">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Câu lạc bộ (ID)</label>
+                                <input type="number" class="form-control" id="club_id" required placeholder="Nhập ID CLB...">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Địa điểm</label>
+                                <input type="text" class="form-control" id="location" required placeholder="Nhập địa điểm...">
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-bold">Ngày giờ tổ chức</label>
+                                <input type="datetime-local" class="form-control" id="event_date" required>
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-bold">Mô tả chi tiết</label>
+                                <textarea class="form-control" id="description" rows="4" placeholder="Nhập nội dung sự kiện..."></textarea>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2 justify-content-end mt-3">
+                            <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Hủy</button>
+                            <button type="submit" class="btn btn-primary px-4 fw-bold">Lưu thông tin</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title fw-bold">Chi tiết sự kiện</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4" id="detailContent">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
     const user = JSON.parse(localStorage.getItem('user'));
+    const role = user?.role ? user.role.toLowerCase() : 'member';
+    const canManage = (role === 'admin' || role === 'chunhiem');
+    
+    const eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
+    const detailModal = new bootstrap.Modal(document.getElementById('detailModal'));
+
+    if (canManage) {
+        document.getElementById('btnAddEvent').classList.remove('d-none');
+    }
 
     async function loadEvents() {
         try {
-            // 1. Lấy danh sách tất cả sự kiện[cite: 5, 7]
             const resEvents = await fetch('index.php/event/list');
             const events = await resEvents.json();
 
-            // 2. Lấy danh sách ID các sự kiện mà User này đã tham gia (nếu đã đăng nhập)
             let joinedEventIds = [];
-if (user) {
-    try {
-        const resJoined = await fetch(`index.php/registration/my-activities?user_id=${user.id}`);
-        const joinedData = await resJoined.json();
-        
-        // Kiểm tra xem joinedData có thực sự là mảng không trước khi map
-        if (Array.isArray(joinedData)) {
-            joinedEventIds = joinedData.map(item => parseInt(item.event_id));
-        } else {
-            console.warn("Dữ liệu trả về không phải mảng:", joinedData);
-            // Nếu API trả về {status: "success", data: [...]}, hãy dùng:
-            // joinedEventIds = joinedData.data.map(item => parseInt(item.event_id));
-        }
-    } catch (err) {
-        console.warn("Không thể lấy danh sách đã tham gia:", err);
-    }
-}
+            if (user) {
+                try {
+                    const resJoined = await fetch(`index.php/registration/my-activities?user_id=${user.id}`);
+                    const joinedData = await resJoined.json();
+                    if (Array.isArray(joinedData)) {
+                        joinedEventIds = joinedData.map(item => parseInt(item.event_id));
+                    }
+                } catch (err) { console.warn("Lỗi lấy DS tham gia"); }
+            }
 
             const container = document.getElementById('eventContainer');
-            
-            if (events.length === 0) {
+            if (!events || events.length === 0) {
                 container.innerHTML = `<div class="col-12 text-center py-5"><p class="text-muted">Chưa có sự kiện nào.</p></div>`;
                 return;
             }
 
             container.innerHTML = events.map(ev => {
-                const isJoined = joinedEventIds.includes(parseInt(ev.id)); // Kiểm tra xem đã tham gia chưa
-                
-                let actionButton = "";
-                if (user && user.role.toLowerCase() === 'admin') {
-                    actionButton = `<div class="admin-notice text-center small fw-bold"><i class="fas fa-user-shield me-1"></i> Chế độ Quản trị viên</div>`;
-                } else if (isJoined) {
-                    // Nếu đã tham gia: Đổi màu nút và disable để tránh nhầm lẫn
-                    actionButton = `<button class="btn btn-secondary w-100 btn-join shadow-sm" disabled>
-                                        <i class="fas fa-check-circle me-2"></i> Đã gửi yêu cầu
-                                    </button>`;
-                } else {
-                    // Nếu chưa tham gia: Hiện nút bình thường
-                    actionButton = `<button onclick="joinEvent(${ev.id})" class="btn btn-primary w-100 btn-join shadow-sm">
-                                        Tham gia ngay <i class="fas fa-chevron-right ms-2 small"></i>
-                                    </button>`;
-                }
-
+                const isJoined = joinedEventIds.includes(parseInt(ev.id));
                 const dateObj = new Date(ev.event_date);
-                const formattedDate = dateObj.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                const formattedDate = dateObj.toLocaleDateString('vi-VN');
+
+                let registerBtn = isJoined 
+                    ? `<button class="btn btn-secondary w-100 btn-action" disabled><i class="fas fa-check me-2"></i>Đã tham gia</button>`
+                    : `<button onclick="joinEvent(${ev.id})" class="btn btn-primary w-100 btn-action">Tham gia ngay</button>`;
 
                 return `
                     <div class="col-md-6 col-lg-4">
                         <div class="card h-100 event-card shadow-sm">
-                            <div class="card-banner">
-                                <span class="badge-date"><i class="far fa-calendar-alt me-1"></i> ${formattedDate}</span>
-                            </div>
+                            <div class="card-banner"><span class="badge-date">${formattedDate}</span></div>
                             <div class="card-body d-flex flex-column p-4">
-                                <h5 class="card-title mb-1 text-truncate-2">${ev.title}</h5>
-                                <p class="text-primary small fw-bold mb-2">
-                                    <i class="fas fa-users me-1"></i> ${ev.club_name || 'CLB Hệ thống'}
-                                </p>
-                                <p class="card-text text-muted small flex-grow-1 mb-4">
-                                    ${ev.description.substring(0, 100)}${ev.description.length > 100 ? '...' : ''}
-                                </p>
+                                <h5 class="card-title mb-1">${ev.title}</h5>
+                                <p class="text-primary small fw-bold mb-2">${ev.club_name || 'Câu lạc bộ'}</p>
+                                
                                 <div class="event-info mb-4">
                                     <div class="mb-2 d-flex align-items-center">
-                                        <i class="fas fa-map-marker-alt"></i> 
-                                        <span class="small text-dark fw-medium">${ev.location}</span>
+                                        <i class="fas fa-map-marker-alt"></i> <span class="small">${ev.location}</span>
                                     </div>
                                     <div class="d-flex align-items-center">
-                                        <i class="far fa-clock"></i> 
-                                        <span class="small text-dark fw-medium">
-                                            ${dateObj.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} - ${formattedDate}
-                                        </span>
+                                        <i class="far fa-clock"></i> <span class="small">${dateObj.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})}</span>
                                     </div>
                                 </div>
-                                <div class="mt-auto">${actionButton}</div>
+
+                                <div class="mt-auto">
+                                    <div class="d-flex gap-2 mb-2">
+                                        <button onclick="viewDetail(${ev.id})" class="btn btn-outline-primary flex-grow-1 btn-action">Xem chi tiết</button>
+                                        ${canManage ? `
+                                            <button onclick="editEvent(${ev.id})" class="btn btn-warning btn-action text-white"><i class="fas fa-edit"></i></button>
+                                            <button onclick="deleteEvent(${ev.id})" class="btn btn-danger btn-action"><i class="fas fa-trash"></i></button>
+                                        ` : ''}
+                                    </div>
+                                    ${!canManage ? registerBtn : ''}
+                                </div>
                             </div>
                         </div>
                     </div>`;
             }).join('');
         } catch (error) {
-            console.error("Lỗi tải sự kiện:", error);
-            document.getElementById('eventContainer').innerHTML = '<div class="col-12 text-center text-danger">Lỗi kết nối Server.</div>';
+            document.getElementById('eventContainer').innerHTML = '<div class="col-12 text-center text-danger">Lỗi kết nối.</div>';
+        }
+    }
+
+    // --- XỬ LÝ SỰ KIỆN ---
+
+    function openEventModal() {
+        document.getElementById('eventForm').reset();
+        document.getElementById('eventId').value = '';
+        document.getElementById('modalTitle').innerText = 'Thêm sự kiện mới';
+        eventModal.show();
+    }
+
+    async function viewDetail(id) {
+        const res = await fetch(`index.php/event/get?id=${id}`);
+        const result = await res.json();
+        if (result.status === "success") {
+            const ev = result.data;
+            document.getElementById('detailContent').innerHTML = `
+                <h4 class="text-primary fw-bold">${ev.title}</h4>
+                <p class="mb-1"><strong><i class="fas fa-users me-2"></i>CLB:</strong> ${ev.club_name}</p>
+                <p class="mb-1"><strong><i class="fas fa-map-marker-alt me-2"></i>Địa điểm:</strong> ${ev.location}</p>
+                <p class="mb-3"><strong><i class="far fa-calendar-alt me-2"></i>Thời gian:</strong> ${new Date(ev.event_date).toLocaleString('vi-VN')}</p>
+                <hr>
+                <p class="text-muted" style="white-space: pre-line;">${ev.description || 'Không có mô tả.'}</p>
+            `;
+            detailModal.show();
+        }
+    }
+
+    async function editEvent(id) {
+        const res = await fetch(`index.php/event/get?id=${id}`);
+        const result = await res.json();
+        if (result.status === "success") {
+            const ev = result.data;
+            document.getElementById('eventId').value = ev.id;
+            document.getElementById('title').value = ev.title;
+            document.getElementById('club_id').value = ev.club_id;
+            document.getElementById('location').value = ev.location;
+            document.getElementById('event_date').value = ev.event_date.replace(' ', 'T').substring(0, 16);
+            document.getElementById('description').value = ev.description;
+            document.getElementById('modalTitle').innerText = 'Chỉnh sửa sự kiện';
+            eventModal.show();
+        }
+    }
+
+    document.getElementById('eventForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('eventId').value;
+        const data = {
+            title: document.getElementById('title').value,
+            club_id: document.getElementById('club_id').value,
+            location: document.getElementById('location').value,
+            event_date: document.getElementById('event_date').value,
+            description: document.getElementById('description').value,
+            created_by: user.id
+        };
+
+        const url = id ? `index.php/event/update?id=${id}` : `index.php/event/create`;
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        if (result.status === "success") {
+            alert(id ? "Cập nhật thành công!" : "Thêm mới thành công!");
+            eventModal.hide();
+            loadEvents();
+        } else {
+            alert("Lỗi: " + result.message);
+        }
+    };
+
+    async function deleteEvent(id) {
+        if (!confirm("Bạn có chắc chắn muốn xóa sự kiện này?")) return;
+        const res = await fetch(`index.php/event/delete?id=${id}`, { method: 'POST' });
+        const result = await res.json();
+        if (result.status === "success") {
+            alert("Xóa thành công!");
+            loadEvents();
         }
     }
 
     async function joinEvent(eventId) {
-        if (!user) {
-            alert("Vui lòng đăng nhập để đăng ký tham gia!");
-            return;
-        }
-
-        const response = await fetch('index.php/registration/join', {
+        if (!user) { alert("Vui lòng đăng nhập!"); return; }
+        const res = await fetch('index.php/registration/join', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ event_id: eventId, user_id: user.id })
         });
-
-        const result = await response.json();
+        const result = await res.json();
         if (result.status === "success") {
             alert("Đăng ký thành công!");
-            loadEvents(); // Tải lại danh sách để cập nhật trạng thái nút ngay lập tức
-        } else {
-            alert("Lỗi: " + result.message);
+            loadEvents();
         }
     }
 
-    loadEvents();
-</script>
+    window.onload = loadEvents;
+    </script>
 </body>
 </html>

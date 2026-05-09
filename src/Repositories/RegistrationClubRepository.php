@@ -6,9 +6,6 @@ class RegistrationClubRepository {
         $this->db = $db;
     }
 
-    /**
-     * Đăng ký tham gia CLB
-     */
     public function register($userId, $clubId, $reason) {
         try {
             // Kiểm tra xem đã đăng ký CLB này chưa để tránh trùng lặp
@@ -26,11 +23,6 @@ class RegistrationClubRepository {
         }
     }
 
-    /**
-     * Lấy danh sách đăng ký CLB kèm thông tin chi tiết
-     * Phân quyền: Nếu là chủ nhiệm ($managedClubId có giá trị), chỉ lấy đơn của CLB đó.
-     * Nếu là Admin ($managedClubId = null), lấy tất cả.
-     */
     public function getAllWithDetails($managedClubId = null) {
         $sql = "SELECT r.*, u.full_name, u.student_code, c.club_name 
                 FROM club_registrations r
@@ -52,10 +44,6 @@ class RegistrationClubRepository {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Cập nhật trạng thái đơn (Duyệt/Từ chối)
-     * Nếu 'Đã duyệt', tự động thêm vào bảng 'member'
-     */
     public function updateStatus($id, $status) {
         try {
             $this->db->beginTransaction();
@@ -93,9 +81,6 @@ class RegistrationClubRepository {
         }
     }
 
-    /**
-     * Lấy lịch sử đăng ký CLB của một cá nhân
-     */
     public function getByUser($userId) {
         $sql = "SELECT r.*, c.club_name 
                 FROM club_registrations r

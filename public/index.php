@@ -33,9 +33,9 @@ switch ($resource) {
             {
             $controller->register();
             }
-         elseif ($action == 'list') {         // Thêm dòng này để load danh sách
+         elseif ($action == 'list') {       
         $controller->list();
-    } elseif ($action == 'update-role') {  // Thêm dòng này để xử lý phân quyền
+    } elseif ($action == 'update-role') {
         $controller->updateRole();
     }
         break;
@@ -48,6 +48,12 @@ switch ($resource) {
             $controller->create();
         } elseif ($action == 'list') {
             $controller->list();
+        } elseif ($action == 'get') {
+            $controller->detail();
+        } elseif ($action == 'update') {
+            $controller->update();
+        } elseif ($action == 'delete') {
+            $controller->delete();
         }
         break;
        case 'tintuc':
@@ -104,11 +110,9 @@ switch ($resource) {
         } elseif ($action == 'update-status') {
             $controller->updateStatus();
         } 
-        // ==================== THÊM DÒNG NÀY ====================
         elseif ($action == 'listForStudent') {
             $controller->listForStudent();
         }
-        // ======================================================
         break;
 
 case 'member':

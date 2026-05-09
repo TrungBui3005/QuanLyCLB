@@ -7,11 +7,6 @@ class ProfileService {
     public function __construct($repository) {
         $this->repository = $repository;
     }
-
-    /**
-     * Cập nhật thông tin hồ sơ người dùng
-     * Dữ liệu nhận từ Controller bao gồm: id, full_name, contact (email), password
-     */
     public function updateProfile($data) {
         // 1. Kiểm tra ID người dùng (Bắt buộc phải có để UPDATE)
         if (empty($data['id'])) {
@@ -39,9 +34,6 @@ class ProfileService {
         return ["status" => "error", "message" => "Cập nhật thất bại hoặc dữ liệu không thay đổi"];
     }
 
-    /**
-     * Lấy thông tin chi tiết người dùng để hiển thị trên UI
-     */
     public function getProfile($userId) {
         $user = $this->repository->getById($userId);
         

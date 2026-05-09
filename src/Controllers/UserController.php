@@ -29,7 +29,6 @@ if ($action == 'register' && $method == 'POST') {
     $data = json_decode(file_get_contents("php://input"));
     
     if (isset($data->username) && isset($data->password) && isset($data->full_name)) {
-        // Mặc định khi đăng ký là member[cite: 7]
         $data->role = 'member'; 
         $result = $service->register($data); 
         
@@ -37,8 +36,6 @@ if ($action == 'register' && $method == 'POST') {
             $newUserId = $db->lastInsertId();
             $studentCode = $data->student_code;
 
-            // 3. Thực hiện đồng bộ sang bảng member
-            // Tìm những dòng có cùng student_code mà user_id đang NULL để nối lại
             $sqlSync = "UPDATE member SET user_id = ? WHERE student_code = ? AND user_id IS NULL";
             $stmtSync = $db->prepare($sqlSync);
             $stmtSync->execute([$newUserId, $studentCode]);
@@ -61,10 +58,9 @@ if ($action == 'update-role' && $method == 'POST') {
     $data = json_decode(file_get_contents("php://input"));
     
     if (isset($data->id) && isset($data->role)) {
-        // Lấy thêm club_id từ data gửi lên (nếu không có thì mặc định là null)
+      
         $club_id = isset($data->club_id) ? $data->club_id : null;
-        
-        // Truyền thêm biến $club_id vào hàm
+       
         $result = $service->updateUserRole($data->id, $data->role, $club_id);
         
         if ($result) {

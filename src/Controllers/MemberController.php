@@ -12,10 +12,6 @@ class MemberController {
         $this->service = new MemberService($repository);
     }
 
-    /**
-     * Lấy danh sách thành viên (AJAX loadMembers)
-     * Phân quyền: Lọc theo CLB mà người dùng đang quản lý
-     */
     public function list() {
         if (ob_get_length()) ob_clean();
         header('Content-Type: application/json; charset=utf-8');
@@ -47,9 +43,6 @@ class MemberController {
         exit;
     }
 
-    /**
-     * Lấy thông tin 1 thành viên (Dùng cho chức năng Sửa - editMember)
-     */
     public function get() {
         if (ob_get_length()) ob_clean();
         header('Content-Type: application/json; charset=utf-8');
@@ -61,9 +54,6 @@ class MemberController {
         exit;
     }
 
-    /**
-     * Lưu thành viên (Thêm mới/Cập nhật - saveMember)
-     */
     public function save() {
         if (ob_get_length()) ob_clean();
         header('Content-Type: application/json; charset=utf-8');
@@ -71,9 +61,7 @@ class MemberController {
         $data = json_decode(file_get_contents("php://input")); 
         
         if ($data) {
-            // Đảm bảo club_id luôn đúng với CLB mà chủ nhiệm quản lý (tránh bị fake dữ liệu từ client)
-            // Nếu bạn muốn Admin có thể thêm thành viên cho bất kỳ CLB nào, có thể thêm check role ở đây.
-            
+        
             $result = $this->service->saveMember($data);
             echo json_encode($result);
         } else {
@@ -82,9 +70,6 @@ class MemberController {
         exit;
     }
 
-    /**
-     * Xóa thành viên (deleteMember)
-     */
     public function delete() {
         if (ob_get_length()) ob_clean();
         header('Content-Type: application/json; charset=utf-8');

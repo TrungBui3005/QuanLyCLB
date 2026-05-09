@@ -129,25 +129,20 @@
                 </div>
 
                 <div class="row">
-                    <!-- === PHẦN BẢN TIN ĐÃ ĐƯỢC CẬP NHẬT === -->
-<div class="col-lg-4 mb-4">
-    <div class="card table-card h-100 bg-white cursor-pointer" onclick="goToNewsPage()" style="transition: all 0.3s;">
-        <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
-            <h5 class="fw-bold mb-0">
-                <i class="fas fa-bell me-2 text-warning"></i>Bản tin
-            </h5>
-            <button onclick="window.location.href='tintuc.html'" class="btn btn-link text-primary fw-bold p-0">
-    Xem tất cả →
-</button>
-        </div>
-        <div class="card-body px-4 py-3">
-            <div id="newsList">
-                <!-- Sẽ tự động load tin tức mới nhất ở đây -->
-            </div>
-        </div>
-    </div>
-</div>
-
+                <div class="col-lg-4 mb-4">
+                    <div class="card table-card h-100 bg-white cursor-pointer" onclick="goToNewsPage()" style="transition: all 0.3s;">
+                        <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                            <h5 class="fw-bold mb-0">
+                                <i class="fas fa-bell me-2 text-warning"></i>Bản tin
+                                    </h5>
+                                        <button onclick="window.location.href='tintuc.html'" class="btn btn-link text-primary fw-bold p-0">Xem tất cả </button>
+                                    </div>
+                                <div class="card-body px-4 py-3">
+                            <div id="newsList">
+                        </div>
+                    </div>
+                </div>
+                </div>
                     <div class="col-lg-8 mb-4">
                         <!-- Lịch sử dành cho Member -->
                         <div class="card table-card member-only bg-white">
@@ -203,7 +198,7 @@
             const roleBadge = document.getElementById('userRole');
 
             // Phân quyền hiển thị UI
-document.querySelectorAll('.admin-only, .chunhiem-only, .member-only').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.admin-only, .chunhiem-only, .member-only').forEach(el => el.style.display = 'none');
 
            if (role === 'admin') {
         // Admin: Thêm CLB, Phân quyền, Tạo sự kiện chung
@@ -277,15 +272,14 @@ document.querySelectorAll('.admin-only, .chunhiem-only, .member-only').forEach(e
             return (s == 0 || s == 'Chờ duyệt') ? "Đang chờ" : (s == 1 || s == 'Đã duyệt' ? "Thành công" : "Bị từ chối"); 
         }
         function logout() { localStorage.removeItem('user'); window.location.href = 'login.html'; }
-        // Thêm hàm này vào cuối file script
-async function loadLatestNews() {
+
+    async function loadLatestNews() {
     try {
         const res = await fetch('index.php/tintuc/list');
         const data = await res.json();
 
         const container = document.getElementById('newsList');
         
-        // Xử lý cả 2 trường hợp: mảng hoặc {status, data}
         let news = Array.isArray(data) ? data : (data.data || []);
         
         if (news.length === 0) {
@@ -318,19 +312,14 @@ function goToNewsPage() {
     window.location.href = 'tintuc.html';
 }
 
-// Nếu muốn click từng tin (tạm thời chuyển về trang tạo, sau này có thể làm trang chi tiết)
 function goToNewsDetail(id) {
     alert("📰 Đang xem tin tức #" + id + "\n\nChức năng xem chi tiết sẽ được làm sau.");
-    // window.location.href = `tintuc-detail.html?id=${id}`;
 }
 
-// Chuyển đến trang tin tức
 function goToNewsPage() {
     window.location.href = 'tintuc.html';
 }
 
-// Gọi hàm load tin tức khi khởi tạo dashboard
-// Trong hàm initDashboard(), thêm dòng này:
 loadLatestNews();
     </script>
 </body>

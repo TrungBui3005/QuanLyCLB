@@ -151,10 +151,10 @@
             try {
                 // SỬA URL ĐỂ KHỚP VỚI PATH_INFO TRONG index.php
               const response = await fetch('index.php/profile/update', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(formData)
-});
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
 
                 if (!response.ok) {
                     throw new Error("Không tìm thấy Endpoint trên máy chủ.");
